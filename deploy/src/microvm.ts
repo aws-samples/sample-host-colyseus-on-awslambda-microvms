@@ -30,8 +30,9 @@ import {
   IAMClient, GetRoleCommand, CreateRoleCommand, PutRolePolicyCommand,
 } from '@aws-sdk/client-iam';
 import { STSClient, GetCallerIdentityCommand } from '@aws-sdk/client-sts';
-import { execSync } from 'child_process';
-import { readFileSync } from 'fs';
+import { execFileSync } from 'child_process';
+import { readFileSync, rmSync } from 'fs';
+import { join } from 'path';
 
 // MicroVM is only available in a handful of regions (us-east-1, us-east-2,
 // us-west-2, eu-west-1, ap-northeast-1). us-west-2 is the default.
@@ -140,11 +141,15 @@ async function ensureBuildRole(bucket: string): Promise<string> {
 /** Zip the server build-context (Dockerfile + package.json + src) and upload to S3. */
 async function uploadServerArtifact(bucket: string, name: string, serverDir: string): Promise<string> {
   const key = `${name}/server-${Date.now()}.zip`;
-  const zipPath = `/tmp/microvm-${name}.zip`;
-  // exclude node_modules (the image build runs npm install itself) + dist.
-  execSync(
-    `cd "${serverDir}" && rm -f "${zipPath}" && zip -rq "${zipPath}" . -x 'node_modules/*' -x 'dist/*' -x '.git/*'`,
-    { stdio: 'pipe' },
+  const zipPath = join('/tmp', `microvm-${name}.zip`);
+  rmSync(zipPath, { force: true });
+  // Use execFileSync (argv array, no shell) so `serverDir`/`name` can never be
+  // interpreted as shell syntax. Exclude node_modules (the image build runs
+  // npm install itself) + dist + .git.
+  execFileSync(
+    'zip',
+    ['-rq', zipPath, '.', '-x', 'node_modules/*', '-x', 'dist/*', '-x', '.git/*'],
+    { cwd: serverDir, stdio: 'pipe' },
   );
   const Body = readFileSync(zipPath);
   await s3().send(new PutObjectCommand({ Bucket: bucket, Key: key, Body }));
