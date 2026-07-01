@@ -1,0 +1,24 @@
+{
+  "name": "sample-host-colyseus-on-awslambda-microvm",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sample: host a Colyseus multiplayer game server on an AWS Lambda MicroVM",
+  "license": "MIT-0",
+  "type": "module",
+  "workspaces": [
+    "client",
+    "server",
+    "deploy"
+  ],
+  "dependencies": {
+    "@aws-sdk/client-lambda-microvms": "^3.1075.0"
+  },
+  "scripts": {
+    "install:all": "npm install && npm --prefix client install && npm --prefix server install && npm --prefix deploy install",
+    "dev:server": "npm --prefix server run dev",
+    "dev:client": "npm --prefix client run dev",
+    "build:client": "npm --prefix client run build",
+    "static": "node scripts/dev-static-server.mjs",
+    "deploy": "npm --prefix deploy run deploy"
+  }
+}

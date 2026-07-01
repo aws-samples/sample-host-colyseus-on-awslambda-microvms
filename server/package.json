@@ -1,0 +1,23 @@
+{
+  "name": "colyseus-microvm-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Standalone Colyseus game server, hosted on a Lambda MicroVM",
+  "license": "MIT-0",
+  "scripts": {
+    "dev": "tsx watch src/entry.ts",
+    "start": "tsx src/entry.ts"
+  },
+  "dependencies": {
+    "colyseus": "^0.15.0",
+    "@colyseus/core": "^0.15.0",
+    "@colyseus/schema": "^2.0.0",
+    "@colyseus/ws-transport": "^0.15.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.0.0",
+    "typescript": "^5.7.0",
+    "@types/node": "^22.0.0"
+  }
+}
