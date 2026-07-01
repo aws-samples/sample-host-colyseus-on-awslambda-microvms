@@ -1,0 +1,28 @@
+{
+  "name": "colyseus-microvm-deploy",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "CLI to build a MicroVM image from the Colyseus server and run an instance",
+  "license": "MIT-0",
+  "bin": {
+    "microvm-deploy": "src/cli.ts"
+  },
+  "scripts": {
+    "deploy": "tsx src/cli.ts deploy",
+    "token": "tsx src/cli.ts token",
+    "info": "tsx src/cli.ts info",
+    "terminate": "tsx src/cli.ts terminate"
+  },
+  "dependencies": {
+    "@aws-sdk/client-lambda-microvms": "^3.1075.0",
+    "@aws-sdk/client-s3": "^3.1075.0",
+    "@aws-sdk/client-iam": "^3.1075.0",
+    "@aws-sdk/client-sts": "^3.1075.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.0.0",
+    "typescript": "^5.7.0",
+    "@types/node": "^22.0.0"
+  }
+}
