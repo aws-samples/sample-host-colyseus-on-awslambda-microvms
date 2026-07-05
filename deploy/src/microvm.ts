@@ -138,6 +138,19 @@ async function ensureBuildRole(bucket: string): Promise<string> {
   return created.Role!.Arn!;
 }
 
+// The deploy name flows into a /tmp file path, an S3 key, and the MicroVM
+// resource name. Constrain it to a safe slug so it can never traverse
+// directories ('../') or smuggle path/URL/shell metacharacters, regardless of
+// how a caller obtains it.
+function assertSafeName(name: string): string {
+  if (!/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,62}$/.test(name)) {
+    throw new Error(
+      `Invalid deploy name "${name}": use 1-63 chars of [a-zA-Z0-9_-], starting alphanumeric.`,
+    );
+  }
+  return name;
+}
+
 /** Zip the server build-context (Dockerfile + package.json + src) and upload to S3. */
 async function uploadServerArtifact(bucket: string, name: string, serverDir: string): Promise<string> {
   const key = `${name}/server-${Date.now()}.zip`;
@@ -189,6 +202,7 @@ export async function buildAndRunMicrovm(
   serverDir: string,
   onStatus: (msg: string) => void = () => {},
 ): Promise<MicrovmDeployResult> {
+  name = assertSafeName(name);
   const bucket = await artifactBucket();
 
   onStatus(`Preparing build environment (S3 bucket "${bucket}", IAM role)…`);

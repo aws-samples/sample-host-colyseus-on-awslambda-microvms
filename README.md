@@ -1,5 +1,7 @@
 # Host a Colyseus multiplayer game server on AWS Lambda MicroVMs
 
+English | [简体中文](README.zh-CN.md)
+
 This sample shows how to run a **stateful, long-lived, WebSocket-based
 multiplayer game server** ([Colyseus](https://colyseus.io/)) on an **[AWS Lambda
 MicroVM](https://aws.amazon.com/blogs/aws/)** — a Firecracker-backed sandbox
@@ -59,6 +61,28 @@ Two connection legs, because the browser can't attach the MicroVM's required
 Auth tokens are short-lived (≤60 min) and **minted fresh per connection at
 runtime** — never baked into the build. See [docs/architecture.md](docs/architecture.md)
 for the full mechanism and gotchas.
+
+### What runs where — the local server is NOT a game server
+
+**The game server runs entirely on the Lambda MicroVM.** All rooms, the
+server-authoritative tick loop, game state, and every in-game WebSocket message
+live in the MicroVM — nothing game-related executes on your machine.
+
+The local server (`npm run static`) is only a thin **launcher/doorman** that
+exists because a browser can't do two things by itself:
+
+| Job | Why it can't live in the browser |
+|---|---|
+| Serve `client/dist` at an origin | The `/_mm` proxy must be **same-origin** with the page |
+| Mint auth tokens (`/_mm/token`) | Requires **AWS credentials**, which must never ship to a browser |
+| Proxy matchmake (`/_mm/*`) | The `X-aws-proxy-auth` header can't survive a CORS preflight |
+
+Once the WebSocket is open, **gameplay traffic flows browser ↔ MicroVM
+directly** — the local server carries zero in-game traffic and could crash
+mid-match without affecting play (until the next matchmake or token refresh).
+This split is why the sample needs `npm run static` running locally: it stands
+in for what would be API Gateway / CloudFront + a small Lambda in production
+(see [Production notes](#production-notes)).
 
 ---
 
@@ -137,6 +161,11 @@ npm run static           # http://localhost:3000 — static host + /_mm proxy + 
 Open `http://localhost:3000`. The browser fetches a fresh token from
 `/_mm/token`, matchmakes through the same-origin proxy, then opens a WebSocket
 **directly** to the MicroVM. Open it in two tabs to see multiplayer.
+
+> ℹ️ `npm run static` is a launcher, not a game server: it serves the static
+> files and brokers tokens/matchmake. All rooms and gameplay run in the
+> MicroVM, and in-game traffic goes browser ↔ MicroVM directly — see
+> [What runs where](#what-runs-where--the-local-server-is-not-a-game-server).
 
 ### 5. Inspect / tear down
 
