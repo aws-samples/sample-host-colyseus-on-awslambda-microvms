@@ -1,0 +1,14 @@
+node_modules/
+dist/
+build/
+*.log
+.DS_Store
+.env
+.env.*
+# Build artifacts produced by the deploy CLI
+*.zip
+/tmp/
+# Per-deploy instance coordinates (endpoint + microvmId), written at deploy time
+client/public/config.json
+client/dist/config.json
+.microvm-deploy.json
